@@ -7,6 +7,5 @@ edition = "2021"
 
 [dependencies]
 png = "0.17"
-rand = "0.8"
-rand_distr = "0.4"
 crossbeam = "0.8"
+nanorand = "0.6"
