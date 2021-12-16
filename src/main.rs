@@ -5,14 +5,15 @@ mod object;
 use std::{f64::consts::PI, fs::File, io::BufWriter};
 
 use camera::Camera;
-use geometry::{Intersect, Vec3, P3};
+use geometry::{Intersect, Ray};
+use glam::DVec3;
 use object::sphere::Sphere;
 
 fn main() {
     // configs
     let frames = 1;
     let num_threads = 16;
-    let samples_per_pixel = 128;
+    let samples_per_pixel = 4096;
     let (x_res, y_res) = (16 * 16 * 4, 16 * 16 * 4);
     let fov = 60.0 * 2.0 * PI / 360.0;
     let max_reflections = 10;
@@ -35,10 +36,8 @@ fn main() {
 
     // camera
     let mut camera = Camera::new(
-        Vec3 {
-            origin: P3::new(1.0, 0.0, -8.0),
-            dir: P3::new(0.0, 0.0, 1.0).normalize(),
-        },
+        DVec3::new(1.0, 0.0, -8.0),
+        DVec3::new(0.0, 0.0, 1.0).normalize(),
         0.0,
         fov,
         fov * (y_res as f64 / x_res as f64),
@@ -82,23 +81,23 @@ fn main() {
         println!("Frame {} completed", frame);
 
         // change camera position
-        camera.dir.origin.z -= 0.01;
-        camera.dir.origin.y += 0.01;
-        camera.dir.dir = (P3::new(0.1, 0.1, 0.1) - camera.dir.origin).normalize();
+        camera.origin.z -= 0.01;
+        camera.origin.y += 0.01;
+        camera.dir = (DVec3::new(0.1, 0.1, 0.1) - camera.origin).normalize();
     }
 }
 
-fn ray_trace(ray: Vec3, scene: &[Sphere], lights: &[Sphere], remaining_steps: usize) -> f64 {
+fn ray_trace(ray: Ray, scene: &[Sphere], lights: &[Sphere], remaining_steps: usize) -> f64 {
     // find intersections
     let mut vec = vec![];
     for obj in scene {
         if let Some(normal) = obj.intersect(ray) {
-            vec.push(((normal.origin - ray.origin).norm_squared(), normal, false));
+            vec.push(((normal.origin - ray.origin).length_squared(), normal, false));
         }
     }
     for light in lights {
         if let Some(normal) = light.intersect(ray) {
-            vec.push(((normal.origin - ray.origin).norm_squared(), normal, true));
+            vec.push(((normal.origin - ray.origin).length_squared(), normal, true));
         }
     }
 
@@ -134,6 +133,9 @@ fn save_to_png(name: &str, image: &[f64], x_res: usize, y_res: usize, gamma_corr
 
     let mut data_writer = encoder.write_header().unwrap();
 
-    let data: Vec<u8> = image.iter().map(|gray| (256.0 * gray.powf(gamma_correction)) as u8).collect();
+    let data: Vec<u8> = image
+        .iter()
+        .map(|gray| (256.0 * gray.powf(gamma_correction)) as u8)
+        .collect();
     data_writer.write_image_data(&data).unwrap();
 }

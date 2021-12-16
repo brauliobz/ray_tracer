@@ -1,26 +1,27 @@
+use glam::DVec3;
 use nanorand::Rng;
 
-use crate::geometry::{Intersect, Vec3, P3};
+use crate::geometry::{Intersect, Ray};
 
 pub struct Sphere {
-    pub center: P3,
+    pub center: DVec3,
     pub radius: f64,
 }
 
 impl Sphere {
     pub fn new((x, y, z): (f64, f64, f64), radius: f64) -> Self {
         Self {
-            center: P3 { x, y, z },
+            center: DVec3::new(x, y, z),
             radius,
         }
     }
 }
 
 impl Intersect for Sphere {
-    fn intersect(&self, ray: Vec3) -> Option<Vec3> {
-        fn delta(s: &Sphere, ray: Vec3) -> f64 {
+    fn intersect(&self, ray: Ray) -> Option<Ray> {
+        fn delta(s: &Sphere, ray: Ray) -> f64 {
             (2.0 * (ray.dir.dot(ray.origin - s.center))).powi(2)
-                - 4.0 * ((ray.origin - s.center).norm_squared() - s.radius * s.radius)
+                - 4.0 * ((ray.origin - s.center).length_squared() - s.radius * s.radius)
         }
 
         let delta = delta(self, ray);
@@ -48,14 +49,14 @@ impl Intersect for Sphere {
         };
 
         let mut rng = nanorand::tls_rng();
-        let rand = P3::new(
+        let rand = DVec3::new(
             rng.generate::<f64>() - 0.5,
             rng.generate::<f64>() - 0.5,
             rng.generate::<f64>() - 0.5,
         ) / 64.0;
 
         let intersect_point = ray.origin + d * (ray.dir + rand);
-        let normal = Vec3 {
+        let normal = Ray {
             origin: intersect_point,
             dir: (intersect_point - self.center).normalize(),
         };
@@ -66,19 +67,19 @@ impl Intersect for Sphere {
 
 #[test]
 fn test_intersect() {
-    let ray = Vec3 {
-        origin: P3::new(0.0, 0.0, 0.0),
-        dir: P3::new(0.0, 0.0, 1.0),
+    let ray = Ray {
+        origin: DVec3::new(0.0, 0.0, 0.0),
+        dir: DVec3::new(0.0, 0.0, 1.0).normalize(),
     };
 
-    let ray2 = Vec3 {
-        origin: P3::new(0.0, 0.0, 0.0),
-        dir: P3::new(0.0, 0.51, 3.0).normalize(),
+    let ray2 = Ray {
+        origin: DVec3::new(0.0, 0.0, 0.0),
+        dir: DVec3::new(0.0, 0.51, 3.0).normalize(),
     };
 
-    let ray3 = Vec3 {
-        origin: P3::new(0.0, 0.0, 0.0),
-        dir: P3::new(0.0, 0.49, 3.0).normalize(),
+    let ray3 = Ray {
+        origin: DVec3::new(0.0, 0.0, 0.0),
+        dir: DVec3::new(0.0, 0.49, 3.0).normalize(),
     };
 
     let obj = Sphere::new((0.0, 0.0, 3.0), 0.5);
