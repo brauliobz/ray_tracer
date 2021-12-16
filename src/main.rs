@@ -1,21 +1,22 @@
 mod camera;
 mod geometry;
-mod objects;
+mod object;
 
 use std::{f64::consts::PI, fs::File, io::BufWriter};
 
 use camera::Camera;
 use geometry::{Intersect, Vec3, P3};
-use objects::Sphere;
+use object::sphere::Sphere;
 
 fn main() {
     // configs
     let frames = 1;
     let num_threads = 16;
-    let samples_per_pixel = 8192;
+    let samples_per_pixel = 128;
     let (x_res, y_res) = (16 * 16 * 4, 16 * 16 * 4);
     let fov = 60.0 * 2.0 * PI / 360.0;
     let max_reflections = 10;
+    let gamma_correction = 1.0 / 2.0;
 
     // scene objects
     let scene = &vec![
@@ -76,6 +77,7 @@ fn main() {
             &image,
             x_res,
             y_res,
+            gamma_correction,
         );
         println!("Frame {} completed", frame);
 
@@ -123,7 +125,7 @@ fn ray_trace(ray: Vec3, scene: &[Sphere], lights: &[Sphere], remaining_steps: us
     }
 }
 
-fn save_to_png(name: &str, image: &[f64], x_res: usize, y_res: usize) {
+fn save_to_png(name: &str, image: &[f64], x_res: usize, y_res: usize, gamma_correction: f64) {
     let writer = BufWriter::new(File::create(name).unwrap());
 
     let mut encoder = png::Encoder::new(writer, x_res as u32, y_res as u32);
@@ -132,6 +134,6 @@ fn save_to_png(name: &str, image: &[f64], x_res: usize, y_res: usize) {
 
     let mut data_writer = encoder.write_header().unwrap();
 
-    let data: Vec<u8> = image.iter().map(|gray| (256.0 * gray) as u8).collect();
+    let data: Vec<u8> = image.iter().map(|gray| (256.0 * gray.powf(gamma_correction)) as u8).collect();
     data_writer.write_image_data(&data).unwrap();
 }
