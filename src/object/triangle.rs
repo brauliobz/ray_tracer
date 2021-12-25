@@ -23,7 +23,6 @@ impl Triangle {
     }
 
     pub fn from_tuples(a: (f64, f64, f64), b: (f64, f64, f64), c: (f64, f64, f64)) -> Self {
-        debug!("{:?} {:?} {:?}", a, b, c);
         Triangle::new(a.into(), b.into(), c.into())
     }
 
@@ -31,7 +30,7 @@ impl Triangle {
         self.normal
     }
 
-    pub fn opposite(&self) -> Self {
+    fn opposite(&self) -> Self {
         Triangle {
             a: self.c,
             b: self.b,
@@ -40,10 +39,10 @@ impl Triangle {
         }
     }
 
-    pub fn almost_equals(&self, other: &Triangle) -> bool {
-        (self.a - other.a).length_squared() < 1e-10
-            && (self.b - other.b).length_squared() < 1e-10
-            && (self.c - other.c).length_squared() < 1e-10
+    fn almost_equals(&self, other: &Triangle) -> bool {
+        self.a.abs_diff_eq(other.a, 1e-10)
+            && self.b.abs_diff_eq(other.b, 1e-10)
+            && self.c.abs_diff_eq(other.c, 1e-10)
     }
 }
 

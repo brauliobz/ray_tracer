@@ -3,6 +3,7 @@ use nanorand::Rng;
 
 use crate::geometry::{Intersect, Ray};
 
+#[derive(Clone, Copy, Debug)]
 pub struct Sphere {
     pub center: DVec3,
     pub radius: f64,
@@ -36,32 +37,32 @@ impl Intersect for Sphere {
         let d1 = (p + q) / 2.0;
         let d2 = (p - q) / 2.0;
 
-        if d1 < 1e-9 && d2 < 1e-9 {
+        if d1 < 0.0 && d2 < 0.0 {
             return None;
         }
 
-        let d = if d1 > 1e-9 && d1 < 1e-9 {
+        let d = if d1 > 0.0 && d2 < 0.0 {
             d1
-        } else if d1 < 1e-9 && d2 > 1e-9 {
+        } else if d1 < 0.0 && d2 > 0.0 {
             d2
         } else {
             d1.min(d2)
         };
+
+        let intersect_point = ray.origin + d * ray.dir;
+        let normal = (intersect_point - self.center).normalize();
 
         let mut rng = nanorand::tls_rng();
         let rand = DVec3::new(
             rng.generate::<f64>() - 0.5,
             rng.generate::<f64>() - 0.5,
             rng.generate::<f64>() - 0.5,
-        ) / 64.0;
+        ) / 16.0;
 
-        let intersect_point = ray.origin + d * (ray.dir + rand);
-        let normal = Ray {
-            origin: intersect_point,
-            dir: (intersect_point - self.center).normalize(),
-        };
-
-        Some(normal)
+        Some(Ray {
+            origin: intersect_point + 0.001 * normal,
+            dir: (normal + rand).normalize(),
+        })
     }
 }
 
