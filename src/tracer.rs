@@ -1,3 +1,8 @@
+use std::sync::{
+    atomic::{AtomicUsize, Ordering},
+    Arc,
+};
+
 use log::debug;
 
 use crate::{
@@ -19,10 +24,14 @@ pub fn render(
 
     // iterate rays to calculate pixels
 
+    let pixels_rendered = Arc::new(AtomicUsize::new(0));
+
     let _ = crossbeam::scope(|scope| {
         for (thread_num, chunk) in image.chunks_mut(y_block_size * x_res).enumerate() {
+            let pixels_counter = pixels_rendered.clone();
             scope.spawn(move |_| {
                 for y in 0..y_block_size {
+                    let mut curr = 0;
                     for x in 0..x_res {
                         let abs_x = x;
                         let abs_y = thread_num * y_block_size + y;
@@ -36,7 +45,14 @@ pub fn render(
                                     max_reflections + 1,
                                 );
                         }
+                        curr = pixels_counter.fetch_add(1, Ordering::Acquire) + 1;
                     }
+                    println!(
+                        "{}/{} pixels rendered. {:.1}%",
+                        curr,
+                        x_res * y_res,
+                        curr as f64 / (x_res as f64 * y_res as f64) * 100.0
+                    );
                 }
             });
         }
