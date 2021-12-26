@@ -105,7 +105,7 @@ impl Intersect for Triangle {
                 rng.generate::<f64>() - 0.5,
                 rng.generate::<f64>() - 0.5,
                 rng.generate::<f64>() - 0.5,
-            );
+            ) * 1.2;
 
             Some(Ray {
                 origin: p + 0.0001 * n,
