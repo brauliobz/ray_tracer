@@ -42,6 +42,13 @@ impl Camera {
         }
     }
 
+    pub fn recalc(&mut self) {
+        self.y_vec = (self.y_fov / 2.0).tan() * self.up.normalize() * 2.0;
+        self.x_vec = (self.x_fov / 2.0).tan() * self.up.cross(self.dir).normalize() * 2.0;
+        self.pixel_lower_left =
+            self.origin + self.dir * self.sensor_distance - (self.x_vec / 2.0) - (self.y_vec / 2.0);
+    }
+
     pub fn ray(&self, (x, y): (usize, usize), (x_res, y_res): (usize, usize)) -> Ray {
         let mut rng = nanorand::tls_rng();
         let dx = (x as f64 + rng.generate::<f64>() - 0.5) / x_res as f64;
