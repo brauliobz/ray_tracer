@@ -9,7 +9,7 @@ use std::{fs::File, io::BufWriter};
 fn main() {
     env_logger::init();
 
-    let mut movie_scene = scene::icosahedron();
+    let mut movie_scene = scene::scene_from_obj_file();
 
     let max_reflections = 5;
     let samples_per_pixel = 256;

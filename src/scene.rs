@@ -3,7 +3,7 @@ use glam::DVec3;
 use crate::{
     camera::Camera,
     geometry::Intersect,
-    object::{sphere::Sphere, triangle::Triangle},
+    object::{import_from_wavefront_obj_file, sphere::Sphere, triangle::Triangle},
 };
 
 pub struct MovieScene {
@@ -106,5 +106,38 @@ pub fn spinning_icosahedron() -> MovieScene {
         },
         n_frames,
         calc_frame_fn,
+    }
+}
+
+pub fn scene_from_obj_file() -> MovieScene {
+    let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
+    let mut objects = import_from_wavefront_obj_file("./torus.obj");
+
+    // floor
+    objects.push(Box::new(Triangle::from_tuples(
+        (-100.0, -75.0, 100.0),
+        (100.0, -75.0, 100.0),
+        (0.0, -75.0, -200.0),
+    )));
+
+    let cam_origin = DVec3::new(0.0, 2.0, 2.0);
+    let fov = 90.0f64.to_radians();
+    let camera = Camera::new(
+        cam_origin,
+        (DVec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
+        DVec3::new(0.0, -1.0, 0.0).normalize(),
+        fov,
+        fov,
+        1.0,
+    );
+
+    MovieScene {
+        scene: Scene {
+            camera,
+            lights,
+            objects,
+        },
+        n_frames: 1,
+        calc_frame_fn: Box::new(|_, _| {}),
     }
 }
