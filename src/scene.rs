@@ -6,13 +6,31 @@ use crate::{
     object::{sphere::Sphere, triangle::Triangle},
 };
 
+pub struct MovieScene {
+    pub scene: Scene,
+    pub n_frames: usize,
+    pub calc_frame_fn: Box<dyn Fn(&mut Scene, usize)>,
+}
+
 pub struct Scene {
     pub objects: Vec<Box<dyn Intersect>>,
     pub lights: Vec<Sphere>,
     pub camera: Camera,
 }
 
-pub fn icosahedron() -> Scene {
+impl MovieScene {
+    pub fn calc_frame(&mut self, frame: usize) {
+        (self.calc_frame_fn)(&mut self.scene, frame);
+    }
+}
+
+pub fn icosahedron() -> MovieScene {
+    let mut ico = spinning_icosahedron();
+    ico.n_frames = 1;
+    ico
+}
+
+pub fn spinning_icosahedron() -> MovieScene {
     let p = [
         DVec3::new(0.000000, -1.000000, 0.000000) * 2.0,
         DVec3::new(0.000000, -1.000000, 0.000000) * 2.0,
@@ -50,16 +68,14 @@ pub fn icosahedron() -> Scene {
         Box::new(Triangle::new(p[9], p[8], p[12])),
         Box::new(Triangle::new(p[10], p[9], p[12])),
         Box::new(Triangle::new(p[11], p[10], p[12])),
+        Box::new(Triangle::from_tuples(
+            (-100.0, -5.0, 100.0),
+            (100.0, -5.0, 100.0),
+            (0.0, -5.0, -200.0),
+        )),
     ];
 
-    let lights = vec![
-        Sphere::new((40.0, 0.0, 0.0), 19.0),
-        Sphere::new((0.0, 40.0, 0.0), 19.0),
-        Sphere::new((40.0, 40.0, 40.0), 19.0),
-        Sphere::new((40.0, -40.0, 40.0), 19.0),
-        Sphere::new((-40.0, 40.0, 40.0), 19.0),
-        Sphere::new((-40.0, -40.0, 40.0), 19.0),
-    ];
+    let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
 
     let cam_origin = DVec3::new(0.0, 0.0, 8.0);
     let fov = 90.0f64.to_radians();
@@ -72,9 +88,23 @@ pub fn icosahedron() -> Scene {
         2.0,
     );
 
-    Scene {
-        objects,
-        lights,
-        camera,
+    let n_frames = 64;
+    let calc_frame_fn = Box::new(move |scene: &mut Scene, frame: usize| {
+        scene.camera.origin.z =
+            8.0 * f64::cos(frame as f64 / n_frames as f64 * 2.0 * std::f64::consts::PI);
+        scene.camera.origin.x =
+            8.0 * f64::sin(frame as f64 / n_frames as f64 * 2.0 * std::f64::consts::PI);
+        scene.camera.dir = (-scene.camera.origin).normalize();
+        scene.camera.recalc();
+    });
+
+    MovieScene {
+        scene: Scene {
+            objects,
+            lights,
+            camera,
+        },
+        n_frames,
+        calc_frame_fn,
     }
 }

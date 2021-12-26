@@ -7,22 +7,23 @@ mod tracer;
 use std::{fs::File, io::BufWriter};
 
 fn main() {
-    // env_logger::init();
+    env_logger::init();
 
-    let scene = &scene::icosahedron();
+    let mut movie_scene = scene::icosahedron();
 
     let max_reflections = 5;
     let samples_per_pixel = 256;
-    let frames = 1;
     let num_threads = 16;
     let gamma_correction = 1.0 / 2.0;
     let (x_res, y_res) = (16 * 16, 16 * 16);
 
-    let mut image = vec![0.0; x_res * y_res];
+    for frame in 0..movie_scene.n_frames {
+        movie_scene.calc_frame(frame);
 
-    for frame in 0..frames {
+        let mut image = vec![0.0; x_res * y_res];
+
         tracer::render(
-            scene,
+            &movie_scene.scene,
             x_res,
             y_res,
             num_threads,
