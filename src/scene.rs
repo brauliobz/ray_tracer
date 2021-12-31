@@ -9,7 +9,7 @@ use crate::{
 pub struct MovieScene {
     pub scene: Scene,
     pub n_frames: usize,
-    pub calc_frame_fn: Box<dyn Fn(&mut Scene, usize)>,
+    pub calc_frame_fn: Option<Box<dyn Fn(&mut Scene, usize)>>,
 }
 
 pub struct Scene {
@@ -20,13 +20,47 @@ pub struct Scene {
 
 impl MovieScene {
     pub fn calc_frame(&mut self, frame: usize) {
-        (self.calc_frame_fn)(&mut self.scene, frame);
+        if let Some(calc_frame_fn) = &self.calc_frame_fn {
+            (calc_frame_fn)(&mut self.scene, frame);
+        }
+    }
+}
+
+pub fn spheres() -> MovieScene {
+    let cam_origin = DVec3::new(0.0, 0.0, 8.0);
+    MovieScene {
+        scene: Scene {
+            objects: vec![
+                Box::new(Sphere::new((0.0, 0.0, 0.0), 2.0)),
+                Box::new(Sphere::new((5.0, 0.0, -3.0), 2.0)),
+                Box::new(Sphere::new((-2.5, 0.0, 2.0), 2.0)),
+                Box::new(Sphere::new((0.5, -1.5, 2.0), 1.0)),
+                Box::new(Sphere::new((2.1, 2.1, 2.0), 0.6)),
+                Box::new(Triangle::from_tuples(
+                    (-100.0, -10.0, 100.0),
+                    (100.0, -10.0, 100.0),
+                    (0.0, -10.0, -200.0),
+                )),
+            ],
+            lights: vec![Sphere::new((20.0, 30.0, 20.0), 10.0)],
+            camera: Camera::new(
+                cam_origin,
+                (DVec3::new(0.0, 0.0, 0.0) - cam_origin).normalize(),
+                DVec3::new(0.0, -1.0, 0.0).normalize(),
+                90.0f64.to_radians(),
+                90.0f64.to_radians(),
+                2.0,
+            ),
+        },
+        n_frames: 1,
+        calc_frame_fn: None,
     }
 }
 
 pub fn icosahedron() -> MovieScene {
     let mut ico = spinning_icosahedron();
     ico.n_frames = 1;
+    ico.calc_frame_fn = None;
     ico
 }
 
@@ -105,7 +139,7 @@ pub fn spinning_icosahedron() -> MovieScene {
             camera,
         },
         n_frames,
-        calc_frame_fn,
+        calc_frame_fn: Some(calc_frame_fn),
     }
 }
 
@@ -138,6 +172,6 @@ pub fn scene_from_obj_file() -> MovieScene {
             objects,
         },
         n_frames: 1,
-        calc_frame_fn: Box::new(|_, _| {}),
+        calc_frame_fn: None,
     }
 }
