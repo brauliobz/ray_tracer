@@ -175,3 +175,38 @@ pub fn scene_from_obj_file() -> MovieScene {
         calc_frame_fn: None,
     }
 }
+
+pub fn icosphere() -> MovieScene {
+    let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
+    let mut objects = import_from_wavefront_obj_file("./icosphere.obj");
+
+    println!("loaded {} triangles", objects.len());
+
+    // floor
+    objects.push(Box::new(Triangle::from_tuples(
+        (-100.0, -75.0, 100.0),
+        (100.0, -75.0, 100.0),
+        (0.0, -75.0, -200.0),
+    )));
+
+    let cam_origin = DVec3::new(0.0, 0.0, 2.1);
+    let fov = 90.0f64.to_radians();
+    let camera = Camera::new(
+        cam_origin,
+        (DVec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
+        DVec3::new(0.0, -1.0, 0.0).normalize(),
+        fov,
+        fov,
+        2.0,
+    );
+
+    MovieScene {
+        scene: Scene {
+            camera,
+            lights,
+            objects,
+        },
+        n_frames: 1,
+        calc_frame_fn: None,
+    }
+}
