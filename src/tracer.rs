@@ -59,6 +59,7 @@ pub fn render(
     });
 }
 
+#[inline]
 pub fn trace_ray(
     ray: Ray,
     scene: &[Box<dyn Intersect>],

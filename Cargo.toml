@@ -13,3 +13,10 @@ glam = "0.20"
 log = "0.4"
 env_logger = "0.9"
 wavefront_obj = "10.0"
+
+[dev-dependencies]
+criterion = "0.3.5"
+
+[[bench]]
+name = "single_ray_icosphere_1280_triangles"
+harness = false
