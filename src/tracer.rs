@@ -3,11 +3,13 @@ use std::sync::{
     Arc,
 };
 
+use glam::DVec3;
 use log::debug;
 
 use crate::{
-    geometry::{Intersect, Ray},
+    geometry::{AABBox, Intersect, Ray},
     object::sphere::Sphere,
+    octree::Octree,
     scene::Scene,
 };
 
@@ -26,6 +28,22 @@ pub fn render(
 
     let pixels_rendered = Arc::new(AtomicUsize::new(0));
 
+    debug!("Constructing octree...");
+    let octree = &Octree::new(
+        &scene
+            .objects
+            .iter()
+            .map(|obj_box| obj_box.as_ref())
+            .collect(),
+        10,
+        16,
+        AABBox {
+            min: DVec3::new(-10.0, -10.0, -10.0),
+            max: DVec3::new(10.0, 10.0, 10.0),
+        },
+    );
+    debug!("Octree construction done");
+
     let _ = crossbeam::scope(|scope| {
         for (thread_num, chunk) in image.chunks_mut(y_block_size * x_res).enumerate() {
             let pixels_counter = pixels_rendered.clone();
@@ -37,13 +55,9 @@ pub fn render(
                         let abs_y = thread_num * y_block_size + y;
                         for _ in 0..samples_per_pixel {
                             let ray = scene.camera.ray((abs_x, abs_y), (x_res, y_res));
+
                             chunk[y * x_res + x] += (1.0 / samples_per_pixel as f64)
-                                * trace_ray(
-                                    ray,
-                                    &scene.objects,
-                                    &scene.lights,
-                                    max_reflections + 1,
-                                );
+                                * trace_ray(ray, octree, &scene.lights, max_reflections + 1);
                         }
                         curr = pixels_counter.fetch_add(1, Ordering::Acquire) + 1;
                     }
@@ -60,29 +74,20 @@ pub fn render(
 }
 
 #[inline]
-pub fn trace_ray(
-    ray: Ray,
-    scene: &[Box<dyn Intersect>],
-    lights: &[Sphere],
-    remaining_steps: usize,
-) -> f64 {
+pub fn trace_ray(ray: Ray, objects: &Octree, lights: &[Sphere], remaining_steps: usize) -> f64 {
     debug!("tracing ray {:?}", ray);
 
     // find intersections
     let mut vec = vec![];
-    for obj in scene {
-        debug!("testing intersection with {:?}", obj);
-        if let Some(normal) = obj.intersect(ray) {
-            debug!(
-                "ray intersects with {:?} with distance {:.3}",
-                obj,
-                (normal.origin - ray.origin).length()
-            );
-            vec.push(((normal.origin - ray.origin).length_squared(), normal, false));
-        } else {
-            debug!("no intersection with object {:?}", obj);
-        }
+
+    if let Some(reflection_normal) = objects.intersect(ray) {
+        vec.push((
+            ray.origin.distance_squared(reflection_normal.origin),
+            reflection_normal,
+            false,
+        ));
     }
+
     for light in lights {
         debug!("testing intersection with light {:?}", light);
         if let Some(normal) = light.intersect(ray) {
@@ -114,7 +119,7 @@ pub fn trace_ray(
             let reflected = ray.reflect(*normal);
             debug!("reflected ray is {:?}", reflected);
             debug!("{} remaining steps", remaining_steps - 1);
-            0.98 * trace_ray(reflected, scene, lights, remaining_steps - 1)
+            0.98 * trace_ray(reflected, objects, lights, remaining_steps - 1)
         } else {
             debug!("no more recursion available");
             0.0
@@ -126,27 +131,15 @@ pub fn trace_ray(
 
 #[cfg(test)]
 mod test {
+    use glam::DVec3;
     use log::debug;
 
     use crate::{
-        geometry::{Intersect, Ray},
+        geometry::{AABBox, Intersect, Ray},
         object::{sphere::Sphere, triangle::Triangle},
+        octree::Octree,
         tracer::trace_ray,
     };
-
-    // #[test]
-    #[allow(unused)]
-    fn reflect_triangle() {
-        let ray_along_z = Ray::from_to((0.0, 0.0, -1.0), (0.0, 0.0, 1.0));
-        let scene: Vec<Box<dyn Intersect>> = vec![Box::new(Triangle::from_tuples(
-            (0.0, 10.0, 0.1),
-            (10.0, -10.0, 0.0),
-            (-10.0, -10.0, 0.0),
-        ))];
-        let lights = vec![Sphere::new((0.0, 0.0, -2.0), 0.2)];
-
-        assert!(trace_ray(ray_along_z, &scene, &lights, 3) > 0.5);
-    }
 
     #[test]
     fn reflect_triangle2() {
@@ -159,7 +152,16 @@ mod test {
             (6.5, -4.5, 0.0),
         ))];
         let lights = vec![Sphere::new((4.0, 0.0, 2.0), 1.0)];
+        let octree = Octree::new(
+            &scene.iter().map(|obj_box| obj_box.as_ref()).collect(),
+            2,
+            2,
+            AABBox {
+                min: DVec3::new(-10.0, -10.0, -10.0),
+                max: DVec3::new(10.0, 10.0, 10.0),
+            },
+        );
 
-        debug!("{:?}", trace_ray(ray, &scene, &lights, 10));
+        debug!("{:?}", trace_ray(ray, &octree, &lights, 10));
     }
 }
