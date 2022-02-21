@@ -97,18 +97,17 @@ pub fn trace_ray(
         }
     }
 
-    // get the nearest
-    vec.sort_by(|(dist_a, _, _), (dist_b, _, _)| {
+    let nearest = vec.iter().min_by(|(dist_a, _, _), (dist_b, _, _)| {
         dist_a
             .partial_cmp(dist_b)
             .unwrap_or(std::cmp::Ordering::Less)
     });
 
     // calculate light intensity
-    if let Some((_, normal, true)) = vec.first() {
+    if let Some((_, normal, true)) = nearest {
         debug!("ray reaches a light source at {}", normal.origin);
         1.0
-    } else if let Some((_, normal, false)) = vec.first() {
+    } else if let Some((_, normal, false)) = nearest {
         debug!("ray reaches an object at {}", normal.origin);
         if remaining_steps > 1 {
             // calculate reflected ray
