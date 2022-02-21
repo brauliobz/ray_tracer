@@ -1,7 +1,7 @@
 use glam::DVec3;
 use nanorand::Rng;
 
-use crate::geometry::{Intersect, Ray};
+use crate::geometry::{AABBox, Intersect, Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
@@ -63,6 +63,21 @@ impl Intersect for Sphere {
             (intersect_point + 0.001 * normal).into(),
             (normal + rand).normalize().into(),
         ))
+    }
+
+    fn bounds(&self) -> crate::geometry::AABBox {
+        AABBox {
+            min: DVec3::new(
+                self.center.x - self.radius,
+                self.center.y - self.radius,
+                self.center.z - self.radius,
+            ),
+            max: DVec3::new(
+                self.center.x + self.radius,
+                self.center.y + self.radius,
+                self.center.z + self.radius,
+            ),
+        }
     }
 }
 

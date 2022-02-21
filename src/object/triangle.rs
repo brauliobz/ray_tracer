@@ -2,7 +2,7 @@ use glam::DVec3;
 use log::debug;
 use nanorand::Rng;
 
-use crate::geometry::{Intersect, Ray};
+use crate::geometry::{AABBox, Intersect, Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Triangle {
@@ -113,6 +113,21 @@ impl Intersect for Triangle {
             Some(Ray::new((p + 0.0001 * n).into(), (n + rand).normalize().into()))
         } else {
             None
+        }
+    }
+
+    fn bounds(&self) -> AABBox {
+        AABBox {
+            min: DVec3::new(
+                self.a.x.min(self.b.x).min(self.c.x),
+                self.a.y.min(self.b.y).min(self.c.y),
+                self.a.z.min(self.b.z).min(self.c.z),
+            ),
+            max: DVec3::new(
+                self.a.x.max(self.b.x).max(self.c.x),
+                self.a.y.max(self.b.y).max(self.c.y),
+                self.a.z.max(self.b.z).max(self.c.z),
+            ),
         }
     }
 }

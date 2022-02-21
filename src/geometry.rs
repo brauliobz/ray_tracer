@@ -20,6 +20,8 @@ pub struct AABBox {
 pub trait Intersect: Sync + Debug {
     /// if it intersects, return the normal at the intersection point
     fn intersect(&self, ray: Ray) -> Option<Ray>;
+
+    fn bounds(&self) -> AABBox;
 }
 
 impl Ray {
@@ -124,5 +126,9 @@ impl Intersect for AABBox {
         } else {
             None
         }
+    }
+
+    fn bounds(&self) -> AABBox {
+        *self
     }
 }
