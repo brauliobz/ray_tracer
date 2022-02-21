@@ -68,6 +68,16 @@ impl AABBox {
             max: DVec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z)),
         }
     }
+
+    pub fn intersect_other(&self, other: &Self) -> bool {
+        fn interval_intersect(a: (f64, f64), b: (f64, f64)) -> bool {
+            !(b.0 > a.1 || a.0 > b.1)
+        }
+
+        interval_intersect((self.min.x, self.max.x), (other.min.x, other.max.x))
+            && interval_intersect((self.min.y, self.max.y), (other.min.y, other.max.y))
+            && interval_intersect((self.min.z, self.max.z), (other.min.z, other.max.z))
+    }
 }
 
 impl Intersect for AABBox {
@@ -130,5 +140,42 @@ impl Intersect for AABBox {
 
     fn bounds(&self) -> AABBox {
         *self
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::geometry::AABBox;
+
+    #[test]
+    fn bbox_intersect() {
+        let a = AABBox::new((0.0, 0.0, 0.0).into(), (5.0, 5.0, 5.0).into());
+        let b = AABBox::new((4.0, 4.0, 4.0).into(), (10.0, 10.0, 10.0).into());
+        assert!(a.intersect_other(&b));
+        assert!(b.intersect_other(&a));
+    }
+
+    #[test]
+    fn bbox_intersect_inside() {
+        let a = AABBox::new((0.0, 0.0, 0.0).into(), (5.0, 5.0, 5.0).into());
+        let b = AABBox::new((-4.0, -4.0, -4.0).into(), (10.0, 10.0, 10.0).into());
+        assert!(a.intersect_other(&b));
+        assert!(b.intersect_other(&a));
+    }
+
+    #[test]
+    fn bbox_do_not_intersect() {
+        let a = AABBox::new((0.0, 0.0, 0.0).into(), (5.0, 5.0, 5.0).into());
+        let b = AABBox::new((-4.0, -4.0, -4.0).into(), (-1.0, -1.0, -1.0).into());
+        assert!(!a.intersect_other(&b));
+        assert!(!b.intersect_other(&a));
+    }
+
+    #[test]
+    fn bbox_intersect_no_vertices_inside() {
+        let a = AABBox::new((0.0, 0.0, 0.0).into(), (1.0, 1.0, 5.0).into());
+        let b = AABBox::new((-5.0, -1.0, 2.0).into(), (5.0, 3.0, 3.0).into());
+        assert!(a.intersect_other(&b));
+        assert!(b.intersect_other(&a));
     }
 }
