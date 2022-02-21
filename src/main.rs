@@ -3,6 +3,7 @@ mod geometry;
 mod object;
 mod scene;
 mod tracer;
+mod octree;
 
 use std::{fs::File, io::BufWriter};
 
