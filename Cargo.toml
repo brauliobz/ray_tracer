@@ -21,3 +21,8 @@ criterion = "0.3.5"
 [[bench]]
 name = "single_ray_icosphere_1280_triangles"
 harness = false
+
+[features]
+default = ["f64"]
+f32 = []
+f64 = []

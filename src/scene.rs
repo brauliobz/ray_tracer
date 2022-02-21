@@ -1,9 +1,9 @@
-use glam::DVec3;
-
 use crate::{
     camera::Camera,
+    float::consts::PI,
     geometry::Intersect,
     object::{import_from_wavefront_obj_file, sphere::Sphere, triangle::Triangle},
+    Float, Vec3,
 };
 
 pub struct MovieScene {
@@ -28,7 +28,7 @@ impl MovieScene {
 
 #[allow(unused)]
 pub fn spheres() -> MovieScene {
-    let cam_origin = DVec3::new(0.0, 0.0, 8.0);
+    let cam_origin = Vec3::new(0.0, 0.0, 8.0);
     MovieScene {
         scene: Scene {
             objects: vec![
@@ -46,10 +46,10 @@ pub fn spheres() -> MovieScene {
             lights: vec![Sphere::new((20.0, 30.0, 20.0), 10.0)],
             camera: Camera::new(
                 cam_origin,
-                (DVec3::new(0.0, 0.0, 0.0) - cam_origin).normalize(),
-                DVec3::new(0.0, -1.0, 0.0).normalize(),
-                90.0f64.to_radians(),
-                90.0f64.to_radians(),
+                (Vec3::new(0.0, 0.0, 0.0) - cam_origin).normalize(),
+                Vec3::new(0.0, -1.0, 0.0).normalize(),
+                (90.0 as Float).to_radians(),
+                (90.0 as Float).to_radians(),
                 2.0,
             ),
         },
@@ -69,19 +69,19 @@ pub fn icosahedron() -> MovieScene {
 #[allow(unused)]
 pub fn spinning_icosahedron() -> MovieScene {
     let p = [
-        DVec3::new(0.000000, -1.000000, 0.000000) * 2.0,
-        DVec3::new(0.000000, -1.000000, 0.000000) * 2.0,
-        DVec3::new(0.723600, -0.447215, 0.525720) * 2.0,
-        DVec3::new(-0.276385, -0.447215, 0.850640) * 2.0,
-        DVec3::new(-0.894425, -0.447215, 0.000000) * 2.0,
-        DVec3::new(-0.276385, -0.447215, -0.850640) * 2.0,
-        DVec3::new(0.723600, -0.447215, -0.525720) * 2.0,
-        DVec3::new(0.276385, 0.447215, 0.850640) * 2.0,
-        DVec3::new(-0.723600, 0.447215, 0.525720) * 2.0,
-        DVec3::new(-0.723600, 0.447215, -0.525720) * 2.0,
-        DVec3::new(0.276385, 0.447215, -0.850640) * 2.0,
-        DVec3::new(0.894425, 0.447215, 0.000000) * 2.0,
-        DVec3::new(0.000000, 1.000000, 0.000000) * 2.0,
+        Vec3::new(0.000000, -1.000000, 0.000000) * 2.0,
+        Vec3::new(0.000000, -1.000000, 0.000000) * 2.0,
+        Vec3::new(0.723600, -0.447215, 0.525720) * 2.0,
+        Vec3::new(-0.276385, -0.447215, 0.850640) * 2.0,
+        Vec3::new(-0.894425, -0.447215, 0.000000) * 2.0,
+        Vec3::new(-0.276385, -0.447215, -0.850640) * 2.0,
+        Vec3::new(0.723600, -0.447215, -0.525720) * 2.0,
+        Vec3::new(0.276385, 0.447215, 0.850640) * 2.0,
+        Vec3::new(-0.723600, 0.447215, 0.525720) * 2.0,
+        Vec3::new(-0.723600, 0.447215, -0.525720) * 2.0,
+        Vec3::new(0.276385, 0.447215, -0.850640) * 2.0,
+        Vec3::new(0.894425, 0.447215, 0.000000) * 2.0,
+        Vec3::new(0.000000, 1.000000, 0.000000) * 2.0,
     ];
 
     let objects: Vec<Box<dyn Intersect>> = vec![
@@ -114,12 +114,12 @@ pub fn spinning_icosahedron() -> MovieScene {
 
     let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
 
-    let cam_origin = DVec3::new(0.0, 0.0, 8.0);
-    let fov = 90.0f64.to_radians();
+    let cam_origin = Vec3::new(0.0, 0.0, 8.0);
+    let fov = (90.0 as Float).to_radians();
     let camera = Camera::new(
         cam_origin,
-        (DVec3::new(0.0, 0.0, 0.0) - cam_origin).normalize(),
-        DVec3::new(0.0, -1.0, 0.0).normalize(),
+        (Vec3::new(0.0, 0.0, 0.0) - cam_origin).normalize(),
+        Vec3::new(0.0, -1.0, 0.0).normalize(),
         fov,
         fov,
         2.0,
@@ -127,10 +127,8 @@ pub fn spinning_icosahedron() -> MovieScene {
 
     let n_frames = 64;
     let calc_frame_fn = Box::new(move |scene: &mut Scene, frame: usize| {
-        scene.camera.origin.z =
-            8.0 * f64::cos(frame as f64 / n_frames as f64 * 2.0 * std::f64::consts::PI);
-        scene.camera.origin.x =
-            8.0 * f64::sin(frame as f64 / n_frames as f64 * 2.0 * std::f64::consts::PI);
+        scene.camera.origin.z = 8.0 * Float::cos(frame as Float / n_frames as Float * 2.0 * PI);
+        scene.camera.origin.x = 8.0 * Float::sin(frame as Float / n_frames as Float * 2.0 * PI);
         scene.camera.dir = (-scene.camera.origin).normalize();
         scene.camera.recalc();
     });
@@ -158,12 +156,12 @@ pub fn scene_from_obj_file() -> MovieScene {
         (0.0, -75.0, -200.0),
     )));
 
-    let cam_origin = DVec3::new(0.0, 2.0, 2.0);
-    let fov = 90.0f64.to_radians();
+    let cam_origin = Vec3::new(0.0, 2.0, 2.0);
+    let fov = (90.0 as Float).to_radians();
     let camera = Camera::new(
         cam_origin,
-        (DVec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
-        DVec3::new(0.0, -1.0, 0.0).normalize(),
+        (Vec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
+        Vec3::new(0.0, -1.0, 0.0).normalize(),
         fov,
         fov,
         1.0,
@@ -194,12 +192,12 @@ pub fn icosphere() -> MovieScene {
         (0.0, -75.0, -200.0),
     )));
 
-    let cam_origin = DVec3::new(0.0, 0.0, 2.1);
-    let fov = 90.0f64.to_radians();
+    let cam_origin = Vec3::new(0.0, 0.0, 2.1);
+    let fov = (90.0 as Float).to_radians();
     let camera = Camera::new(
         cam_origin,
-        (DVec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
-        DVec3::new(0.0, -1.0, 0.0).normalize(),
+        (Vec3::new(0.0, -0.5, 0.0) - cam_origin).normalize(),
+        Vec3::new(0.0, -1.0, 0.0).normalize(),
         fov,
         fov,
         2.0,

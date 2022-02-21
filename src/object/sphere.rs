@@ -1,18 +1,18 @@
-use glam::DVec3;
+use crate::{Vec3, Float};
 use nanorand::Rng;
 
 use crate::geometry::{AABBox, Intersect, Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Sphere {
-    pub center: DVec3,
-    pub radius: f64,
+    pub center: Vec3,
+    pub radius: Float,
 }
 
 impl Sphere {
-    pub fn new((x, y, z): (f64, f64, f64), radius: f64) -> Self {
+    pub fn new((x, y, z): (Float, Float, Float), radius: Float) -> Self {
         Self {
-            center: DVec3::new(x, y, z),
+            center: Vec3::new(x, y, z),
             radius,
         }
     }
@@ -20,7 +20,7 @@ impl Sphere {
 
 impl Intersect for Sphere {
     fn intersect(&self, ray: Ray) -> Option<Ray> {
-        fn delta(s: &Sphere, ray: Ray) -> f64 {
+        fn delta(s: &Sphere, ray: Ray) -> Float {
             (2.0 * (ray.dir.dot(ray.origin - s.center))).powi(2)
                 - 4.0 * ((ray.origin - s.center).length_squared() - s.radius * s.radius)
         }
@@ -53,10 +53,10 @@ impl Intersect for Sphere {
         let normal = (intersect_point - self.center).normalize();
 
         let mut rng = nanorand::tls_rng();
-        let rand = DVec3::new(
-            rng.generate::<f64>() - 0.5,
-            rng.generate::<f64>() - 0.5,
-            rng.generate::<f64>() - 0.5,
+        let rand = Vec3::new(
+            rng.generate::<Float>() - 0.5,
+            rng.generate::<Float>() - 0.5,
+            rng.generate::<Float>() - 0.5,
         ) / 16.0;
 
         Some(Ray::new(
@@ -67,12 +67,12 @@ impl Intersect for Sphere {
 
     fn bounds(&self) -> crate::geometry::AABBox {
         AABBox {
-            min: DVec3::new(
+            min: Vec3::new(
                 self.center.x - self.radius,
                 self.center.y - self.radius,
                 self.center.z - self.radius,
             ),
-            max: DVec3::new(
+            max: Vec3::new(
                 self.center.x + self.radius,
                 self.center.y + self.radius,
                 self.center.z + self.radius,

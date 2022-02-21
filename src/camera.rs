@@ -1,29 +1,29 @@
-use glam::DVec3;
+use crate::{Vec3, Float};
 use nanorand::Rng;
 
 use crate::geometry::Ray;
 
 #[derive(Debug)]
 pub struct Camera {
-    pub origin: DVec3,
-    pub dir: DVec3,
-    pub up: DVec3,
-    pub x_fov: f64,
-    pub y_fov: f64,
-    pub sensor_distance: f64,
-    pixel_lower_left: DVec3,
-    x_vec: DVec3,
-    y_vec: DVec3,
+    pub origin: Vec3,
+    pub dir: Vec3,
+    pub up: Vec3,
+    pub x_fov: Float,
+    pub y_fov: Float,
+    pub sensor_distance: Float,
+    pixel_lower_left: Vec3,
+    x_vec: Vec3,
+    y_vec: Vec3,
 }
 
 impl Camera {
     pub fn new(
-        origin: DVec3,
-        dir: DVec3,
-        up: DVec3,
-        x_fov: f64,
-        y_fov: f64,
-        sensor_distance: f64,
+        origin: Vec3,
+        dir: Vec3,
+        up: Vec3,
+        x_fov: Float,
+        y_fov: Float,
+        sensor_distance: Float,
     ) -> Camera {
         let y_vec = (y_fov / 2.0).tan() * up.normalize();
         let x_vec = (x_fov / 2.0).tan() * up.cross(dir).normalize();
@@ -51,8 +51,8 @@ impl Camera {
 
     pub fn ray(&self, (x, y): (usize, usize), (x_res, y_res): (usize, usize)) -> Ray {
         let mut rng = nanorand::tls_rng();
-        let dx = (x as f64 + rng.generate::<f64>() - 0.5) / x_res as f64;
-        let dy = (y as f64 + rng.generate::<f64>() - 0.5) / y_res as f64;
+        let dx = (x as Float + rng.generate::<Float>() - 0.5) / x_res as Float;
+        let dy = (y as Float + rng.generate::<Float>() - 0.5) / y_res as Float;
 
         let dir = (self.pixel_lower_left + dx * self.x_vec + dy * self.y_vec) - self.origin;
 
@@ -63,11 +63,11 @@ impl Camera {
 #[test]
 fn camera() {
     let camera = Camera::new(
-        DVec3::new(0.0, 0.0, -1.0),
-        DVec3::new(0.0, 0.0, 1.0),
-        DVec3::new(0.0, 1.0, 0.0),
-        90.0f64.to_radians(),
-        90.0f64.to_radians(),
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 0.0, 1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        (90.0 as Float).to_radians(),
+        (90.0 as Float).to_radians(),
         1.0,
     );
 
@@ -79,19 +79,19 @@ fn camera() {
     assert!((camera.ray((1000, 1000), (2000, 2000)).dir.z - 1.0).abs() <= 10e-4);
 
     // ray going near the lower left
-    let p = DVec3::new(-1.0, -1.0, 1.0).normalize();
+    let p = Vec3::new(-1.0, -1.0, 1.0).normalize();
     assert!((camera.ray((0, 0), (2000, 2000)).dir.x - p.x).abs() <= 10e-4);
     assert!((camera.ray((0, 0), (2000, 2000)).dir.y - p.y).abs() <= 10e-4);
     assert!((camera.ray((0, 0), (2000, 2000)).dir.z - p.z).abs() <= 10e-4);
 
     // ray going near the lower right
-    let p = DVec3::new(1.0, -1.0, 1.0).normalize();
+    let p = Vec3::new(1.0, -1.0, 1.0).normalize();
     assert!((camera.ray((2000, 0), (2000, 2000)).dir.x - p.x).abs() <= 10e-4);
     assert!((camera.ray((2000, 0), (2000, 2000)).dir.y - p.y).abs() <= 10e-4);
     assert!((camera.ray((2000, 0), (2000, 2000)).dir.z - p.z).abs() <= 10e-4);
 
     // ray going near the top right
-    let p = DVec3::new(1.0, 1.0, 1.0).normalize();
+    let p = Vec3::new(1.0, 1.0, 1.0).normalize();
     assert!((camera.ray((2000, 2000), (2000, 2000)).dir.x - p.x).abs() <= 10e-4);
     assert!((camera.ray((2000, 2000), (2000, 2000)).dir.y - p.y).abs() <= 10e-4);
     assert!((camera.ray((2000, 2000), (2000, 2000)).dir.z - p.z).abs() <= 10e-4);

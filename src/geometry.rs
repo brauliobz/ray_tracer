@@ -1,20 +1,20 @@
 use std::fmt::Debug;
 
-use glam::DVec3;
+use crate::{Vec3, Float};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Ray {
-    pub origin: DVec3,
-    pub dir: DVec3,
+    pub origin: Vec3,
+    pub dir: Vec3,
     /// direction reciprocal
-    pub dir_recip: DVec3,
+    pub dir_recip: Vec3,
 }
 
 /// Axis-aligned bounding box defined by min and max points
 #[derive(Clone, Copy, Debug, Default)]
 pub struct AABBox {
-    pub min: DVec3,
-    pub max: DVec3,
+    pub min: Vec3,
+    pub max: Vec3,
 }
 
 pub trait Intersect: Sync + Debug {
@@ -26,10 +26,10 @@ pub trait Intersect: Sync + Debug {
 
 impl Ray {
     pub fn new(
-        (origin_x, origin_y, origin_z): (f64, f64, f64),
-        (dir_x, dir_y, dir_z): (f64, f64, f64),
+        (origin_x, origin_y, origin_z): (Float, Float, Float),
+        (dir_x, dir_y, dir_z): (Float, Float, Float),
     ) -> Self {
-        let dir = DVec3::new(dir_x, dir_y, dir_z).normalize();
+        let dir = Vec3::new(dir_x, dir_y, dir_z).normalize();
         Ray {
             origin: (origin_x, origin_y, origin_z).into(),
             dir,
@@ -39,11 +39,11 @@ impl Ray {
 
     #[allow(unused)] // used in tests
     pub fn from_to(
-        (origin_x, origin_y, origin_z): (f64, f64, f64),
-        (to_x, to_y, to_z): (f64, f64, f64),
+        (origin_x, origin_y, origin_z): (Float, Float, Float),
+        (to_x, to_y, to_z): (Float, Float, Float),
     ) -> Self {
         let dir =
-            (DVec3::new(to_x, to_y, to_z) - DVec3::new(origin_x, origin_y, origin_z)).normalize();
+            (Vec3::new(to_x, to_y, to_z) - Vec3::new(origin_x, origin_y, origin_z)).normalize();
         Ray {
             origin: (origin_x, origin_y, origin_z).into(),
             dir,
@@ -62,10 +62,10 @@ impl Ray {
 }
 
 impl AABBox {
-    pub fn new(a: DVec3, b: DVec3) -> AABBox {
+    pub fn new(a: Vec3, b: Vec3) -> AABBox {
         AABBox {
-            min: DVec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z)),
-            max: DVec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z)),
+            min: Vec3::new(a.x.min(b.x), a.y.min(b.y), a.z.min(b.z)),
+            max: Vec3::new(a.x.max(b.x), a.y.max(b.y), a.z.max(b.z)),
         }
     }
 
@@ -74,18 +74,18 @@ impl AABBox {
 
         [
             AABBox::new(self.min, middle),
-            AABBox::new(DVec3::new(self.max.x, self.min.y, self.min.z), middle),
-            AABBox::new(DVec3::new(self.min.x, self.max.y, self.min.z), middle),
-            AABBox::new(DVec3::new(self.min.x, self.min.y, self.max.z), middle),
+            AABBox::new(Vec3::new(self.max.x, self.min.y, self.min.z), middle),
+            AABBox::new(Vec3::new(self.min.x, self.max.y, self.min.z), middle),
+            AABBox::new(Vec3::new(self.min.x, self.min.y, self.max.z), middle),
             AABBox::new(self.max, middle),
-            AABBox::new(DVec3::new(self.min.x, self.max.y, self.max.z), middle),
-            AABBox::new(DVec3::new(self.max.x, self.min.y, self.max.z), middle),
-            AABBox::new(DVec3::new(self.max.x, self.max.y, self.min.z), middle),
+            AABBox::new(Vec3::new(self.min.x, self.max.y, self.max.z), middle),
+            AABBox::new(Vec3::new(self.max.x, self.min.y, self.max.z), middle),
+            AABBox::new(Vec3::new(self.max.x, self.max.y, self.min.z), middle),
         ]
     }
 
     pub fn intersect_other(&self, other: &Self) -> bool {
-        fn interval_intersect(a: (f64, f64), b: (f64, f64)) -> bool {
+        fn interval_intersect(a: (Float, Float), b: (Float, Float)) -> bool {
             !(b.0 > a.1 || a.0 > b.1)
         }
 
@@ -99,8 +99,8 @@ impl Intersect for AABBox {
     fn intersect(&self, ray: Ray) -> Option<Ray> {
         // slab method
 
-        let mut tmin = f64::NEG_INFINITY;
-        let mut tmax = f64::INFINITY;
+        let mut tmin = Float::NEG_INFINITY;
+        let mut tmax = Float::INFINITY;
 
         if ray.dir.x != 0.0 {
             let tx1 = (self.min.x - ray.origin.x) * ray.dir_recip.x;

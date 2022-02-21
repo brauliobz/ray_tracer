@@ -1,4 +1,4 @@
-use glam::DVec3;
+use crate::{Vec3, Float};
 use log::debug;
 use nanorand::Rng;
 
@@ -6,14 +6,14 @@ use crate::geometry::{AABBox, Intersect, Ray};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Triangle {
-    pub a: DVec3,
-    pub b: DVec3,
-    pub c: DVec3,
-    normal: DVec3,
+    pub a: Vec3,
+    pub b: Vec3,
+    pub c: Vec3,
+    normal: Vec3,
 }
 
 impl Triangle {
-    pub fn new(a: DVec3, b: DVec3, c: DVec3) -> Self {
+    pub fn new(a: Vec3, b: Vec3, c: Vec3) -> Self {
         Triangle {
             a,
             b,
@@ -22,12 +22,12 @@ impl Triangle {
         }
     }
 
-    pub fn from_tuples(a: (f64, f64, f64), b: (f64, f64, f64), c: (f64, f64, f64)) -> Self {
+    pub fn from_tuples(a: (Float, Float, Float), b: (Float, Float, Float), c: (Float, Float, Float)) -> Self {
         Triangle::new(a.into(), b.into(), c.into())
     }
 
     #[allow(unused)] // used in tests
-    pub fn normal(&self) -> DVec3 {
+    pub fn normal(&self) -> Vec3 {
         self.normal
     }
 
@@ -49,8 +49,8 @@ impl Triangle {
     }
 }
 
-impl From<(DVec3, DVec3, DVec3)> for Triangle {
-    fn from((a, b, c): (DVec3, DVec3, DVec3)) -> Self {
+impl From<(Vec3, Vec3, Vec3)> for Triangle {
+    fn from((a, b, c): (Vec3, Vec3, Vec3)) -> Self {
         Triangle::new(a, b, c)
     }
 }
@@ -104,10 +104,10 @@ impl Intersect for Triangle {
 
         if left_of_a_b && left_of_b_c && left_of_c_a {
             let mut rng = nanorand::tls_rng();
-            let rand = DVec3::new(
-                rng.generate::<f64>() - 0.5,
-                rng.generate::<f64>() - 0.5,
-                rng.generate::<f64>() - 0.5,
+            let rand = Vec3::new(
+                rng.generate::<Float>() - 0.5,
+                rng.generate::<Float>() - 0.5,
+                rng.generate::<Float>() - 0.5,
             ) * 1.2;
 
             Some(Ray::new((p + 0.0001 * n).into(), (n + rand).normalize().into()))
@@ -118,12 +118,12 @@ impl Intersect for Triangle {
 
     fn bounds(&self) -> AABBox {
         AABBox {
-            min: DVec3::new(
+            min: Vec3::new(
                 self.a.x.min(self.b.x).min(self.c.x),
                 self.a.y.min(self.b.y).min(self.c.y),
                 self.a.z.min(self.b.z).min(self.c.z),
             ),
-            max: DVec3::new(
+            max: Vec3::new(
                 self.a.x.max(self.b.x).max(self.c.x),
                 self.a.y.max(self.b.y).max(self.c.y),
                 self.a.z.max(self.b.z).max(self.c.z),
@@ -135,7 +135,7 @@ impl Intersect for Triangle {
 #[cfg(test)]
 mod test {
 
-    use glam::DVec3;
+    use crate::Vec3;
 
     use crate::{
         geometry::{Intersect, Ray},
@@ -147,7 +147,7 @@ mod test {
         // towards +z
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)).normal()
-                - DVec3::new(0.0, 0.0, 1.0))
+                - Vec3::new(0.0, 0.0, 1.0))
             .length()
                 < 1e-9
         );
@@ -155,7 +155,7 @@ mod test {
         // towards -z
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0)).normal()
-                - DVec3::new(0.0, 0.0, -1.0))
+                - Vec3::new(0.0, 0.0, -1.0))
             .length()
                 < 1e-9
         );
@@ -163,7 +163,7 @@ mod test {
         // towards x
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)).normal()
-                - DVec3::new(1.0, 0.0, 0.0))
+                - Vec3::new(1.0, 0.0, 0.0))
             .length()
                 < 1e-9
         );
@@ -171,7 +171,7 @@ mod test {
         // towards -x
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 1.0, 0.0)).normal()
-                - DVec3::new(-1.0, 0.0, 0.0))
+                - Vec3::new(-1.0, 0.0, 0.0))
             .length()
                 < 1e-9
         );
@@ -179,7 +179,7 @@ mod test {
         // towards y
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0)).normal()
-                - DVec3::new(0.0, 1.0, 0.0))
+                - Vec3::new(0.0, 1.0, 0.0))
             .length()
                 < 1e-9
         );
@@ -187,7 +187,7 @@ mod test {
         // towards -y
         assert!(
             (Triangle::from_tuples((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.0, 1.0)).normal()
-                - DVec3::new(0.0, -1.0, 0.0))
+                - Vec3::new(0.0, -1.0, 0.0))
             .length()
                 < 1e-9
         );
@@ -195,7 +195,7 @@ mod test {
 
     #[test]
     fn opposite_triangle_has_the_vertices_reversed() {
-        let tri: Triangle = (DVec3::ZERO, DVec3::X, DVec3::Y).into();
+        let tri: Triangle = (Vec3::ZERO, Vec3::X, Vec3::Y).into();
 
         let opp = tri.opposite();
 
@@ -212,8 +212,8 @@ mod test {
 
     #[test]
     fn opposite_triangle_has_opposite_normal() {
-        let tri: Triangle = (DVec3::ZERO, DVec3::X, DVec3::Y).into();
-        assert!((tri.opposite().normal() - (-DVec3::Z)).length() < 1e-9);
+        let tri: Triangle = (Vec3::ZERO, Vec3::X, Vec3::Y).into();
+        assert!((tri.opposite().normal() - (-Vec3::Z)).length() < 1e-9);
     }
 
     #[test]
@@ -230,7 +230,7 @@ mod test {
         let tri = Triangle::from_tuples((0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0));
 
         // normal points to z
-        assert!(tri.normal().abs_diff_eq(DVec3::Z, 1e-9));
+        assert!(tri.normal().abs_diff_eq(Vec3::Z, 1e-9));
 
         let ray_center_into = Ray::from_to((0.25, 0.25, 1.0), (0.25, 0.25, -1.0));
 
@@ -242,7 +242,7 @@ mod test {
         let tri = Triangle::from_tuples((0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0));
 
         // normal points to -z
-        assert!(tri.normal().abs_diff_eq(-DVec3::Z, 1e-9));
+        assert!(tri.normal().abs_diff_eq(-Vec3::Z, 1e-9));
 
         let ray_center_into = Ray::from_to((0.25, 0.25, 1.0), (0.25, 0.25, -1.0));
 

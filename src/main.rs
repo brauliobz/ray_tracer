@@ -1,20 +1,14 @@
-mod camera;
-mod geometry;
-mod object;
-mod scene;
-mod tracer;
-mod octree;
-
 use std::{fs::File, io::BufWriter};
+
+use ray_tracer::{scene, tracer, Float};
 
 fn main() {
     env_logger::init();
 
-    let mut movie_scene = scene::scene_from_obj_file();
+    let mut movie_scene = scene::icosphere();
 
-    let max_reflections = 5;
-    let samples_per_pixel = 256;
-    let num_threads = 16;
+    let max_reflections = 3;
+    let samples_per_pixel = 32;
     let num_threads = num_cpus::get();
     let gamma_correction = 1.0 / 2.0;
     let (x_res, y_res) = (16 * 16, 16 * 16);
@@ -22,7 +16,7 @@ fn main() {
     for frame in 0..movie_scene.n_frames {
         movie_scene.calc_frame(frame);
 
-        let mut image = vec![0.0; x_res * y_res];
+        let mut image = vec![0.0 as Float; x_res * y_res];
 
         tracer::render(
             &movie_scene.scene,
@@ -46,7 +40,7 @@ fn main() {
     }
 }
 
-fn save_to_png(name: &str, image: &[f64], x_res: usize, y_res: usize, gamma_correction: f64) {
+fn save_to_png(name: &str, image: &[Float], x_res: usize, y_res: usize, gamma_correction: Float) {
     let writer = BufWriter::new(File::create(name).unwrap());
 
     let mut encoder = png::Encoder::new(writer, x_res as u32, y_res as u32);

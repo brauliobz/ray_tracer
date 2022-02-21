@@ -3,7 +3,6 @@ use std::sync::{
     Arc,
 };
 
-use glam::DVec3;
 use log::debug;
 
 use crate::{
@@ -11,6 +10,7 @@ use crate::{
     object::sphere::Sphere,
     octree::Octree,
     scene::Scene,
+    Float, Vec3,
 };
 
 pub fn render(
@@ -20,13 +20,15 @@ pub fn render(
     num_threads: usize,
     samples_per_pixel: usize,
     max_reflections: usize,
-    image: &mut Vec<f64>,
+    image: &mut Vec<Float>,
 ) {
     let y_block_size = y_res / num_threads;
 
     // iterate rays to calculate pixels
 
     let pixels_rendered = Arc::new(AtomicUsize::new(0));
+
+    // TODO let world_bbox = ;
 
     debug!("Constructing octree...");
     let octree = &Octree::new(
@@ -38,8 +40,8 @@ pub fn render(
         10,
         16,
         AABBox {
-            min: DVec3::new(-10.0, -10.0, -10.0),
-            max: DVec3::new(10.0, 10.0, 10.0),
+            min: Vec3::new(-10.0, -10.0, -10.0),
+            max: Vec3::new(10.0, 10.0, 10.0),
         },
     );
     debug!("Octree construction done");
@@ -56,7 +58,7 @@ pub fn render(
                         for _ in 0..samples_per_pixel {
                             let ray = scene.camera.ray((abs_x, abs_y), (x_res, y_res));
 
-                            chunk[y * x_res + x] += (1.0 / samples_per_pixel as f64)
+                            chunk[y * x_res + x] += (1.0 / samples_per_pixel as Float)
                                 * trace_ray(ray, octree, &scene.lights, max_reflections + 1);
                         }
                         curr = pixels_counter.fetch_add(1, Ordering::Acquire) + 1;
@@ -65,7 +67,7 @@ pub fn render(
                         "{}/{} pixels rendered. {:.1}%",
                         curr,
                         x_res * y_res,
-                        curr as f64 / (x_res as f64 * y_res as f64) * 100.0
+                        curr as Float / (x_res as Float * y_res as Float) * 100.0
                     );
                 }
             });
@@ -74,7 +76,7 @@ pub fn render(
 }
 
 #[inline]
-pub fn trace_ray(ray: Ray, objects: &Octree, lights: &[Sphere], remaining_steps: usize) -> f64 {
+pub fn trace_ray(ray: Ray, objects: &Octree, lights: &[Sphere], remaining_steps: usize) -> Float {
     debug!("tracing ray {:?}", ray);
 
     // find intersections
@@ -131,7 +133,7 @@ pub fn trace_ray(ray: Ray, objects: &Octree, lights: &[Sphere], remaining_steps:
 
 #[cfg(test)]
 mod test {
-    use glam::DVec3;
+    use crate::Vec3;
     use log::debug;
 
     use crate::{
@@ -157,8 +159,8 @@ mod test {
             2,
             2,
             AABBox {
-                min: DVec3::new(-10.0, -10.0, -10.0),
-                max: DVec3::new(10.0, 10.0, 10.0),
+                min: Vec3::new(-10.0, -10.0, -10.0),
+                max: Vec3::new(10.0, 10.0, 10.0),
             },
         );
 
