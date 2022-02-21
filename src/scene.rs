@@ -26,6 +26,7 @@ impl MovieScene {
     }
 }
 
+#[allow(unused)]
 pub fn spheres() -> MovieScene {
     let cam_origin = DVec3::new(0.0, 0.0, 8.0);
     MovieScene {
@@ -57,6 +58,7 @@ pub fn spheres() -> MovieScene {
     }
 }
 
+#[allow(unused)]
 pub fn icosahedron() -> MovieScene {
     let mut ico = spinning_icosahedron();
     ico.n_frames = 1;
@@ -64,6 +66,7 @@ pub fn icosahedron() -> MovieScene {
     ico
 }
 
+#[allow(unused)]
 pub fn spinning_icosahedron() -> MovieScene {
     let p = [
         DVec3::new(0.000000, -1.000000, 0.000000) * 2.0,
@@ -143,6 +146,7 @@ pub fn spinning_icosahedron() -> MovieScene {
     }
 }
 
+#[allow(unused)]
 pub fn scene_from_obj_file() -> MovieScene {
     let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
     let mut objects = import_from_wavefront_obj_file("./torus.obj");
@@ -176,6 +180,7 @@ pub fn scene_from_obj_file() -> MovieScene {
     }
 }
 
+#[allow(unused)]
 pub fn icosphere() -> MovieScene {
     let lights = vec![Sphere::new((40.0, 30.0, 0.0), 15.0)];
     let mut objects = import_from_wavefront_obj_file("./icosphere.obj");

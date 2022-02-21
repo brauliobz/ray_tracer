@@ -26,10 +26,12 @@ impl Triangle {
         Triangle::new(a.into(), b.into(), c.into())
     }
 
+    #[allow(unused)] // used in tests
     pub fn normal(&self) -> DVec3 {
         self.normal
     }
 
+    #[allow(unused)] // used in tests
     fn opposite(&self) -> Self {
         Triangle {
             a: self.c,
@@ -39,6 +41,7 @@ impl Triangle {
         }
     }
 
+    #[allow(unused)] // used in tests
     fn almost_equals(&self, other: &Triangle) -> bool {
         self.a.abs_diff_eq(other.a, 1e-10)
             && self.b.abs_diff_eq(other.b, 1e-10)
