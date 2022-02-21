@@ -14,6 +14,7 @@ fn main() {
     let max_reflections = 5;
     let samples_per_pixel = 256;
     let num_threads = 16;
+    let num_threads = num_cpus::get();
     let gamma_correction = 1.0 / 2.0;
     let (x_res, y_res) = (16 * 16, 16 * 16);
 
