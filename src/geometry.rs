@@ -69,6 +69,21 @@ impl AABBox {
         }
     }
 
+    pub fn octants(&self) -> [AABBox; 8] {
+        let middle = (self.min + self.max) / 2.0;
+
+        [
+            AABBox::new(self.min, middle),
+            AABBox::new(DVec3::new(self.max.x, self.min.y, self.min.z), middle),
+            AABBox::new(DVec3::new(self.min.x, self.max.y, self.min.z), middle),
+            AABBox::new(DVec3::new(self.min.x, self.min.y, self.max.z), middle),
+            AABBox::new(self.max, middle),
+            AABBox::new(DVec3::new(self.min.x, self.max.y, self.max.z), middle),
+            AABBox::new(DVec3::new(self.max.x, self.min.y, self.max.z), middle),
+            AABBox::new(DVec3::new(self.max.x, self.max.y, self.min.z), middle),
+        ]
+    }
+
     pub fn intersect_other(&self, other: &Self) -> bool {
         fn interval_intersect(a: (f64, f64), b: (f64, f64)) -> bool {
             !(b.0 > a.1 || a.0 > b.1)
