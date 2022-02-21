@@ -110,10 +110,7 @@ impl Intersect for Triangle {
                 rng.generate::<f64>() - 0.5,
             ) * 1.2;
 
-            Some(Ray {
-                origin: p + 0.0001 * n,
-                dir: (n + rand).normalize(),
-            })
+            Some(Ray::new((p + 0.0001 * n).into(), (n + rand).normalize().into()))
         } else {
             None
         }

@@ -56,10 +56,7 @@ impl Camera {
 
         let dir = (self.pixel_lower_left + dx * self.x_vec + dy * self.y_vec) - self.origin;
 
-        Ray {
-            origin: self.origin,
-            dir: dir.normalize(),
-        }
+        Ray::new(self.origin.into(), dir.into())
     }
 }
 

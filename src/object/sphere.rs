@@ -59,29 +59,20 @@ impl Intersect for Sphere {
             rng.generate::<f64>() - 0.5,
         ) / 16.0;
 
-        Some(Ray {
-            origin: intersect_point + 0.001 * normal,
-            dir: (normal + rand).normalize(),
-        })
+        Some(Ray::new(
+            (intersect_point + 0.001 * normal).into(),
+            (normal + rand).normalize().into(),
+        ))
     }
 }
 
 #[test]
 fn test_intersect() {
-    let ray = Ray {
-        origin: DVec3::new(0.0, 0.0, 0.0),
-        dir: DVec3::new(0.0, 0.0, 1.0).normalize(),
-    };
+    let ray = Ray::new((0.0, 0.0, 0.0), (0.0, 0.0, 1.0));
 
-    let ray2 = Ray {
-        origin: DVec3::new(0.0, 0.0, 0.0),
-        dir: DVec3::new(0.0, 0.51, 3.0).normalize(),
-    };
+    let ray2 = Ray::new((0.0, 0.0, 0.0), (0.0, 0.51, 3.0));
 
-    let ray3 = Ray {
-        origin: DVec3::new(0.0, 0.0, 0.0),
-        dir: DVec3::new(0.0, 0.49, 3.0).normalize(),
-    };
+    let ray3 = Ray::new((0.0, 0.0, 0.0), (0.0, 0.49, 3.0));
 
     let obj = Sphere::new((0.0, 0.0, 3.0), 0.5);
 
