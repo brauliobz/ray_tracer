@@ -1,21 +1,19 @@
-mod camera;
-mod geometry;
-mod object;
-mod scene;
-mod tracer;
-mod octree;
+use ray_tracer::{scene, tracer};
 
 use std::{fs::File, io::BufWriter};
 
 fn main() {
     env_logger::init();
 
-    let mut movie_scene = scene::scene_from_obj_file();
+    let mut movie_scene = scene::icosphere();
 
     let max_reflections = 5;
-    let samples_per_pixel = 256;
-    let num_threads = 16;
-    let num_threads = num_cpus::get();
+    let samples_per_pixel = 1024;
+    let num_threads = if cfg!(debug_assertions) {
+        1
+    } else {
+        num_cpus::get()
+    };
     let gamma_correction = 1.0 / 2.0;
     let (x_res, y_res) = (16 * 16, 16 * 16);
 

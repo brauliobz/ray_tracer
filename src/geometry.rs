@@ -11,7 +11,7 @@ pub struct Ray {
 }
 
 /// Axis-aligned bounding box defined by min and max points
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct AABBox {
     pub min: DVec3,
     pub max: DVec3,
@@ -92,6 +92,23 @@ impl AABBox {
         interval_intersect((self.min.x, self.max.x), (other.min.x, other.max.x))
             && interval_intersect((self.min.y, self.max.y), (other.min.y, other.max.y))
             && interval_intersect((self.min.z, self.max.z), (other.min.z, other.max.z))
+    }
+
+    pub fn merge(&self, other: &AABBox) -> AABBox {
+        AABBox {
+            min: (
+                self.min.x.min(other.min.x),
+                self.min.y.min(other.min.y),
+                self.min.z.min(other.min.z),
+            )
+                .into(),
+            max: (
+                self.max.x.max(other.max.x),
+                self.max.y.max(other.max.y),
+                self.max.z.max(other.max.z),
+            )
+                .into(),
+        }
     }
 }
 
